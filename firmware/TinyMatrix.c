@@ -1,7 +1,9 @@
 ////////////////////////////////////////////////////////////
 // TinyCoinMatrix.c                                       //
-// copyright 2012 Tim Toner (tigeruppp/at/gmail.com)        //
+// copyright 2012 Tim Toner (tigeruppp/at/gmail.com)      //
 // licensed under the GNU GPL v2 or newer                 //
+//                                                        //
+// Port to ATtiny88 by John Duksta (john/at/duksta.org)   //
 ////////////////////////////////////////////////////////////
 
 #include <inttypes.h>
