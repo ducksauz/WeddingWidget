@@ -19,3 +19,12 @@
 # Embedded executables
 *.hex
 *.elf
+
+# Ignore Everything in the gerbers dir
+gerbers/*
+
+# Ignore Eagle temp/backup files
+*.?#?
+
+# DS_Store files too
+.DS_Store
