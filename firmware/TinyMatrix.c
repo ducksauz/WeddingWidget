@@ -77,7 +77,7 @@ void beep()
 void reset_led()
 {
 	// keep pull-up resistors active	
-	PORTD = _BV(7) | _BV(6);
+	PORTD = _BV(6) | _BV(7);
 		
 	// hi/low the port pins to power off LED. (see datasheets)
 	PORTA = _BV(0);
@@ -118,7 +118,6 @@ void set_column(int c)
 /////////////////////////////////////////////////////////////////////
 
 
-
 // render and energize the current row, based on bitmap array
 void refresh_line()
 {
@@ -149,29 +148,54 @@ void clear_bitmap()
 
 
 /////////////////////////////////////////////////////////////////////
-//                                   static 5x7 graphics / symbols //
+//  static 5x7 graphics / symbols                                  //
 /////////////////////////////////////////////////////////////////////
-#define CHARS 15
-unsigned char charset[CHARS][5] PROGMEM = 
-{
-	{ 0xFF, 0x41, 0x5D, 0x41, 0xFF },	// psycho 2
-	{ 0x00, 0x3E, 0x22, 0x3E, 0x00 },	// psycho 1
-	{ 0x0E, 0x3B, 0x17, 0x3B, 0x0E },	// skull
- 	{ 0x0C, 0x12, 0x24, 0x12, 0x0C },	// heart
- 	{ 0x0A, 0x00, 0x55, 0x00, 0x0A },	// flower
-	{ 0x08, 0x14, 0x2A, 0x14, 0x08 },	// diamond
-	{ 0x07, 0x49, 0x71, 0x49, 0x07 },	// cup
- 	{ 0x22, 0x14, 0x6B, 0x14, 0x22 },	// star2
-	{ 0x36, 0x36, 0x08, 0x36, 0x36 },	// star3
-	{ 0x06, 0x15, 0x69, 0x15, 0x06 },	// nuke
- 	{ 0x0F, 0x1A, 0x3E, 0x1A, 0x0F },	// fox
-	{ 0x6C, 0x1A, 0x6F, 0x1A, 0x6C },	// alien
-	{ 0x7D, 0x5A, 0x1E, 0x5A, 0x7D },	// alien
-	{ 0x4E, 0x7B, 0x0F, 0x7B, 0x4E },	// alien
-	{ 0x3D, 0x66, 0x7C, 0x66, 0x3D }	// alien
-//	{ 0x, 0x, 0x, 0x, 0x }
-};
 
+#define CHARS 41
+unsigned char alphabet[CHARS][5] PROGMEM =
+{ 
+	{ 0x0C, 0x12, 0x24, 0x12, 0x0C },	// heart
+	{ 0x7E, 0x09, 0x09, 0x09, 0x7E },	// A
+	{ 0x7f, 0x49, 0x49, 0x49, 0x36 },	// B
+	{ 0x3e, 0x41, 0x41, 0x41, 0x22 },	// C
+	{ 0x7f, 0x41, 0x41, 0x22, 0x1c },	// D
+	{ 0x7f, 0x49, 0x49, 0x49, 0x63 },	// E
+	{ 0x7f, 0x09, 0x09, 0x09, 0x01 },	// F
+	{ 0x3e, 0x41, 0x41, 0x49, 0x7a },	// G
+	{ 0x7f, 0x08, 0x08, 0x08, 0x7f },	// H
+	{ 0x00, 0x41, 0x7f, 0x41, 0x00 },	// I
+	{ 0x20, 0x40, 0x41, 0x3f, 0x01 },	// J
+	{ 0x7f, 0x08, 0x14, 0x22, 0x41 },	// K
+	{ 0x7f, 0x40, 0x40, 0x40, 0x60 },	// L
+	{ 0x7f, 0x02, 0x04, 0x02, 0x7f },	// M
+	{ 0x7f, 0x04, 0x08, 0x10, 0x7f },	// N
+	{ 0x3e, 0x41, 0x41, 0x41, 0x3e },	// O
+	{ 0x7f, 0x09, 0x09, 0x09, 0x06 },	// P
+	{ 0x3e, 0x41, 0x51, 0x21, 0x5e },	// Q
+	{ 0x7f, 0x09, 0x19, 0x29, 0x46 },	// R
+	{ 0x46, 0x49, 0x49, 0x49, 0x31 },	// S
+	{ 0x01, 0x01, 0x7f, 0x01, 0x01 },	// T
+	{ 0x3f, 0x40, 0x40, 0x40, 0x3f },	// U
+	{ 0x1f, 0x20, 0x40, 0x20, 0x1f },	// V
+	{ 0x3f, 0x40, 0x30, 0x40, 0x3f },	// W
+	{ 0x63, 0x14, 0x08, 0x14, 0x63 }, 	// X
+	{ 0x07, 0x08, 0x70, 0x08, 0x07 },	// Y
+	{ 0x61, 0x51, 0x49, 0x45, 0x43 },	// Z
+	{ 0xFF, 0x41, 0x5D, 0x41, 0xFF },	// psycho 2 (27)
+	{ 0x00, 0x3E, 0x22, 0x3E, 0x00 },	// psycho 1 (28)
+	{ 0x0E, 0x3B, 0x17, 0x3B, 0x0E },	// skull (29)
+	{ 0x0A, 0x00, 0x55, 0x00, 0x0A },	// flower (30)
+	{ 0x08, 0x14, 0x2A, 0x14, 0x08 },	// diamond (31)
+	{ 0x07, 0x49, 0x71, 0x49, 0x07 },	// cup (32)
+	{ 0x22, 0x14, 0x6B, 0x14, 0x22 },	// star2 (33)
+	{ 0x36, 0x36, 0x08, 0x36, 0x36 },	// star3 (34)
+	{ 0x06, 0x15, 0x69, 0x15, 0x06 },	// nuke (35)
+	{ 0x0F, 0x1A, 0x3E, 0x1A, 0x0F },	// fox (36)
+	{ 0x6C, 0x1A, 0x6F, 0x1A, 0x6C },	// alien (37)
+	{ 0x7D, 0x5A, 0x1E, 0x5A, 0x7D },	// alien (38)
+	{ 0x4E, 0x7B, 0x0F, 0x7B, 0x4E },	// alien (39)
+	{ 0x3D, 0x66, 0x7C, 0x66, 0x3D }	// alien (40)
+};
 
 // renders character c onto the bitmap
 void render_character(int c)
@@ -182,7 +206,7 @@ void render_character(int c)
 
 	for (y=0; y<ROWS; y++)
 	{
-		byte = pgm_read_byte(&(charset[c][y]));
+		byte = pgm_read_byte(&(alphabet[c][y]));
 
 		for (x=0; x<COLS; x++)
 		{
@@ -238,8 +262,8 @@ void render_psycho()
 
 	// simple 2 frame animation
 	
-	if (frame%2) render_character(0);
-	else render_character(1);
+	if (frame%2) render_character(27);
+	else render_character(28);
 }
 
 void render_heartbeat()
@@ -250,9 +274,9 @@ void render_heartbeat()
 
 	switch (frame%10)
 	{
-		case 0: render_character(3);	break;	
+		case 0: render_character(0);	break;	
 		case 1: clear_bitmap();			break;	
-		case 2: render_character(3);	break;	
+		case 2: render_character(0);	break;	
 		case 3: clear_bitmap();			break;	
 	}
 }
@@ -296,7 +320,7 @@ void render_fire()
 
 
 // renders the correct image / animation onto the bitmap
-#define MODES 18
+#define MODES 45
 void render_buffer()
 {
 	frame++;
@@ -305,23 +329,50 @@ void render_buffer()
 	switch(mode)
 	{
 		case 1:	render_checkerboard();	break;
-		case 2:	render_psycho();	break;
-		case 3:	render_heartbeat();	break;
-		case 4:	render_rain();		break;
-		case 5:	render_fire();		break;
-		case 6:	render_character(2);	break;
-		case 7: render_character(3);	break;
-		case 8: render_character(4);	break;
-		case 9: render_character(5);	break;
-		case 10: render_character(6);	break;
-		case 11: render_character(7);	break;
-		case 12: render_character(8);	break;
-		case 13: render_character(9);	break;
-		case 14: render_character(10);	break;
-		case 15: render_character(11);	break;
-		case 16: render_character(12);	break;
-		case 17: render_character(13);	break;
-		case 18: render_character(14);	break;
+		case 2:	render_psycho();		break;
+		case 3:	render_heartbeat();		break;
+		case 4:	render_rain();			break;
+		case 5:	render_fire();			break;
+		case 6:	render_character(28);	break;
+		case 7: render_character(29);	break;
+		case 8: render_character(30);	break;
+		case 9: render_character(31);	break;
+		case 10: render_character(32);	break;
+		case 11: render_character(33);	break;
+		case 12: render_character(34);	break;
+		case 13: render_character(35);	break;
+		case 14: render_character(36);	break;
+		case 15: render_character(37);	break;
+		case 16: render_character(38);	break;
+		case 17: render_character(39);	break;
+		case 18: render_character(40);	break;
+		case 19: render_character(0);	break;
+		case 20: render_character(1);	break;
+		case 21: render_character(2);	break;
+		case 22: render_character(3);	break;
+		case 23: render_character(4);	break;
+		case 24: render_character(5);	break;
+		case 25: render_character(6);	break;
+		case 26: render_character(7);	break;
+		case 27: render_character(8);	break;
+		case 28: render_character(9);	break;
+		case 29: render_character(10);	break;
+		case 30: render_character(11);	break;
+		case 31: render_character(12);	break;
+		case 32: render_character(13);	break;
+		case 33: render_character(14);	break;
+		case 34: render_character(15);	break;
+		case 35: render_character(16);	break;
+		case 36: render_character(17);	break;
+		case 37: render_character(18);	break;
+		case 38: render_character(19);	break;
+		case 39: render_character(20);	break;
+		case 40: render_character(21);	break;
+		case 41: render_character(22);	break;
+		case 42: render_character(23);	break;
+		case 43: render_character(24);	break;
+		case 44: render_character(25);	break;
+		case 45: render_character(26);	break;
 	}
 }
 
@@ -329,15 +380,15 @@ void render_buffer()
 // increment/decrement 'mode' in response.
 void check_inputs()
 {
-	// button 1 state (PORTD0 or PORTD6)
-	if ((PIND & _BV(0)) == 0 || (PIND & _BV(6)) == 0) b1++;	else b1 = 0;
+	// button 1 state (PORTD6)
+	if ((PIND & _BV(6)) == 0) b1++;	else b1 = 0;
 
-	// button 2 state (PORTD5)
+	// button 2 state (PORTD7)
 	if ((PIND & _BV(7)) == 0) b2++;	else b2 = 0;
 
 	// rudimentary de-bouncing
-	if (b2 == 10) 		{ beep(); mode--; need_render_frame = 1; }
-	if (b1 == 10) 		{ beep(); mode++; need_render_frame = 1; }
+	if (b1 == 10) 		{ mode--; need_render_frame = 1; }
+	if (b2 == 10) 		{ mode++; need_render_frame = 1; }
 
 	// wraparound (optional)
 	if (mode > MODES) mode = 1;

@@ -6,8 +6,10 @@ DEVICE     = attiny88
 CLOCK      = 4000000
 FUSES      = -U hfuse:w:0xDF:m -U lfuse:w:0xE2:m
 PROGRAMMER = usbtiny
+## PROGRAMMER = dragon_isp
 
 AVRDUDE = avrdude -c $(PROGRAMMER) -P usb -p t88
+## AVRDUDE = avrdude -c $(PROGRAMMER) -p t88
 COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
 
 # symbolic targets:
