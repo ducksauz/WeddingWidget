@@ -4,6 +4,7 @@
 // licensed under the GNU GPL v2 or newer                 //
 //                                                        //
 // Port to ATtiny88 by John Duksta (john/at/duksta.org)   //
+// Breakout game added by Dennis Brown (dennis.brown/at/gmail) //
 ////////////////////////////////////////////////////////////
 
 #include <inttypes.h>
@@ -21,6 +22,19 @@
 char bitmap[ROWS][COLS];	
 int need_refresh_line;
 int need_render_frame;
+int button_count;
+int ball_x;
+int ball_y;
+int ball_y_dir;
+int ball_x_dir;
+int ball_angle;
+int move_sleep;
+int dead_sleep;
+int t_count;
+int in_game;
+int is_down;
+int lives;
+int blocks[ROWS][3];
 unsigned char current_row;		// current lit row
 
 
@@ -152,7 +166,7 @@ void clear_bitmap()
 /////////////////////////////////////////////////////////////////////
 
 #define CHARS 41
-unsigned char alphabet[CHARS][5] PROGMEM =
+const unsigned char alphabet[CHARS][5] PROGMEM =
 { 
 	{ 0x0C, 0x12, 0x24, 0x12, 0x0C },	// heart
 	{ 0x7E, 0x09, 0x09, 0x09, 0x7E },	// A
@@ -316,8 +330,226 @@ void render_fire()
 
 }
 
+void render_game()
+{
 
+	frame_delay = 120;
+	clear_bitmap();
+	
+	t_count++;
+	if (t_count >= 1000) t_count = 0;
+	
+		
+	// Draw paddle
+	if (button_count == 0) {
+		bitmap[0][6] = 1;
+		bitmap[1][6] = 1;
+	}
+	else if (button_count == 1) {
+		bitmap[1][6] = 1;
+		bitmap[2][6] = 1;
+	}
+	else if (button_count == 2) {
+		bitmap[2][6] = 1;
+		bitmap[3][6] = 1;
+	}
+	else if (button_count == 3) {
+		bitmap[3][6] = 1;
+		bitmap[4][6] = 1;
+	}
 
+	//Draw blocks
+	int b_x = 0;
+	int b_y = 0;
+	
+	for (b_y = 0; b_y < 3; b_y++) {
+		for (b_x = 0; b_x < ROWS; b_x++) {
+			bitmap[b_x][b_y] = blocks[b_x][b_y];	
+		}
+	}
+
+	//Draw Ball
+	if (move_sleep <= 0) {
+		if (ball_x_dir > 0) {
+			ball_x++;
+			if (ball_x > 4) {
+				ball_x_dir = -1;
+				ball_x = 3;
+			}
+		}
+		else {
+			ball_x--;
+			if (ball_x < 0) {
+				ball_x_dir = 1;
+				ball_x = 1;
+			}
+		}
+		
+		
+		if (ball_y_dir > 0) {
+			//Detect colisions
+			ball_y--;
+			
+			// Hit the roof
+			if (ball_y <= 0) {
+				ball_y_dir *= -1;
+				if (rand()%2+1 == 0) {
+				//if (t_count%7 == 0) {
+						ball_x_dir *= -1;
+				}
+				//ball_y = 0;
+			}
+			
+			//Detect block colisions
+			if (bitmap[ball_x][ball_y-1] == 1) {
+				blocks[ball_x][ball_y-1] = 0;
+				ball_y_dir = -1;
+				//if (t_count%2 == 0) {
+				if (rand()%2+1 == 0) {
+					ball_x_dir = ball_x_dir * -1;
+				}
+			}
+			else if ((bitmap[ball_x-1][ball_y-1] == 1) && (ball_x_dir == -1)) {
+				blocks[ball_x-1][ball_y-1] = 0;
+				ball_y_dir = -1;
+				ball_x_dir = ball_x_dir * -1;
+			}
+			else if ((bitmap[ball_x+1][ball_y-1] == 1) && (ball_x_dir == 1)) {
+				blocks[ball_x+1][ball_y-1] = 0;
+				ball_y_dir = -1;
+				ball_x_dir = ball_x_dir * -1;
+			}			
+			else if ((bitmap[ball_x+1][0] == 1) && (ball_x_dir == 1) && (ball_y == 0)) {
+				blocks[ball_x+1][0] = 0;
+				ball_y_dir = -1;
+				ball_x_dir = ball_x_dir * -1;
+			}	
+			else if ((bitmap[ball_x-1][0] == 1) && (ball_x_dir == 1) && (ball_y == 0)) {
+				blocks[ball_x-1][0] = 0;
+				ball_y_dir = -1;
+				ball_x_dir = ball_x_dir * -1;
+			}	
+			else if ((bitmap[ball_x-1][ball_y-1] == 1) && (ball_x_dir == 1) && (ball_x == 4)) {
+				blocks[ball_x-1][ball_y-1] = 0;
+				ball_y_dir = -1;
+				ball_x_dir = ball_x_dir * -1;
+			}
+			else if ((bitmap[1][1] == 1) && (ball_x_dir == -1) && (ball_x == 0) && (ball_y == 2)) {
+				blocks[1][1] = 0;
+				ball_y_dir = -1;
+				ball_x_dir = ball_x_dir * -1;
+			}
+			if ((bitmap[3][0] == 1) && (ball_x == 2) && (ball_y == 0)) {
+				blocks[3][0] = 0;
+				ball_y_dir = 1;
+				ball_x_dir = ball_x_dir * -1;
+			}
+		}
+		
+		else {
+			ball_y++;
+			if (ball_y < COLS-3) {
+				//Detect block colisions
+				if (bitmap[ball_x][ball_y+1] == 1) {
+					blocks[ball_x][ball_y+1] = 0;
+					ball_y_dir = 1;
+					ball_x_dir = ball_x_dir * -1;
+				}
+				else if ((bitmap[ball_x-1][ball_y+1] == 1) && (ball_x_dir == -1)) {
+					blocks[ball_x-1][ball_y+1] = 0;
+					ball_y_dir = 1;
+					ball_x_dir = ball_x_dir * -1;
+				}
+				else if ((bitmap[ball_x+1][ball_y+1] == 1) && (ball_x_dir == 1)) {
+					blocks[ball_x+1][ball_y+1] = 0;
+					ball_y_dir = 1;
+					ball_x_dir = ball_x_dir * -1;
+				}
+				else if ((bitmap[ball_x+1][0] == 1) && (ball_x_dir == 1) && (ball_y == 0)) {
+					blocks[ball_x+1][0] = 0;
+					ball_y_dir = -1;
+					ball_x_dir = ball_x_dir * -1;
+				}	
+				else if ((bitmap[ball_x-1][0] == 1) && (ball_x_dir == 1) && (ball_y == 0)) {
+					blocks[ball_x-1][0] = 0;
+					ball_y_dir = -1;
+					ball_x_dir = ball_x_dir * -1;
+				}	
+
+			}
+				
+			if (ball_y == COLS-2) {
+				if (bitmap[ball_x][COLS-1] == 1) {
+					//ball_y--;
+					ball_y_dir = 1;
+					//if (t_count%13 == 0) {
+					if (rand()%2+1 == 0) {
+						ball_x_dir *= -1;
+					}
+
+				}
+			}
+
+			
+			// DEATH
+			if (ball_y == COLS-1) {
+				dead_sleep = 8;
+				lives--;
+			}
+			
+		}
+		move_sleep = 2;
+		
+	}
+	else {
+		move_sleep--;
+	}
+	int is_done = 0;
+	for (b_y = 0; b_y < 3; b_y++) {
+		for (b_x = 0; b_x < ROWS; b_x++) {
+			is_done += blocks[b_x][b_y];	
+		}
+	}
+	if (is_done == 0) {
+		dead_sleep = 10;
+		lives = 0;
+	}
+	
+	if (dead_sleep <= 0)
+	{
+		bitmap[ball_x][ball_y] = 1;
+	}
+	else {
+			ball_x = ball_x + 1;
+			if (ball_x > 4) ball_x = 0;
+			ball_x_dir *= -1;
+			ball_y = 2;
+			
+			ball_y_dir = -1;
+			//Init blocks
+			int b_x = 0;
+			int b_y = 0;
+			
+			if (lives == 0) {
+				// Board reset
+				for (b_y = 0; b_y < 3; b_y++) {
+					for (b_x = 0; b_x < ROWS; b_x++) {
+						blocks[b_x][b_y] = 1;	
+					}
+				}
+			
+				//Reset lives
+				lives = 2;
+			}
+			
+		dead_sleep--;
+	}
+
+	//if (in_game >= 50) {
+	//	render_game(); break;
+	//}
+
+}
 
 // renders the correct image / animation onto the bitmap
 #define MODES 45
@@ -325,55 +557,65 @@ void render_buffer()
 {
 	frame++;
 	need_render_frame = 0;
-	
-	switch(mode)
-	{
-		case 1:	render_checkerboard();	break;
-		case 2:	render_psycho();		break;
-		case 3:	render_heartbeat();		break;
-		case 4:	render_rain();			break;
-		case 5:	render_fire();			break;
-		case 6:	render_character(28);	break;
-		case 7: render_character(29);	break;
-		case 8: render_character(30);	break;
-		case 9: render_character(31);	break;
-		case 10: render_character(32);	break;
-		case 11: render_character(33);	break;
-		case 12: render_character(34);	break;
-		case 13: render_character(35);	break;
-		case 14: render_character(36);	break;
-		case 15: render_character(37);	break;
-		case 16: render_character(38);	break;
-		case 17: render_character(39);	break;
-		case 18: render_character(40);	break;
-		case 19: render_character(0);	break;
-		case 20: render_character(1);	break;
-		case 21: render_character(2);	break;
-		case 22: render_character(3);	break;
-		case 23: render_character(4);	break;
-		case 24: render_character(5);	break;
-		case 25: render_character(6);	break;
-		case 26: render_character(7);	break;
-		case 27: render_character(8);	break;
-		case 28: render_character(9);	break;
-		case 29: render_character(10);	break;
-		case 30: render_character(11);	break;
-		case 31: render_character(12);	break;
-		case 32: render_character(13);	break;
-		case 33: render_character(14);	break;
-		case 34: render_character(15);	break;
-		case 35: render_character(16);	break;
-		case 36: render_character(17);	break;
-		case 37: render_character(18);	break;
-		case 38: render_character(19);	break;
-		case 39: render_character(20);	break;
-		case 40: render_character(21);	break;
-		case 41: render_character(22);	break;
-		case 42: render_character(23);	break;
-		case 43: render_character(24);	break;
-		case 44: render_character(25);	break;
-		case 45: render_character(26);	break;
+	if (in_game >= 5) {
+		render_game(); 
 	}
+	else {
+		switch(mode)
+		{
+			
+			case 1:	render_checkerboard();	break;
+			case 2:	render_psycho();		break;
+			case 3:	render_heartbeat();		break;
+			case 4:	render_rain();			break;
+			case 5:	render_fire();			break;
+			case 6:	render_character(28);	break;
+			case 7: render_character(29);	break;
+			case 8: render_character(30);	break;
+			case 9: render_character(31);	break;
+			case 10: render_character(32);	break;
+			case 11: render_character(33);	break;
+			case 12: render_character(34);	break;
+			case 13: render_character(35);	break;
+			case 14: render_character(36);	break;
+			case 15: render_character(37);	break;
+			case 16: render_character(38);	break;
+			case 17: render_character(39);	break;
+			case 18: render_character(40);	break;
+			case 19: render_character(0);	break;
+			case 20: render_character(1);	break;
+			case 21: render_character(2);	break;
+			case 22: render_character(3);	break;
+			case 23: render_character(4);	break;
+			case 24: render_character(5);	break;
+			case 25: render_character(6);	break;
+			case 26: render_character(7);	break;
+			case 27: render_character(8);	break;
+			case 28: render_character(9);	break;
+			case 29: render_character(10);	break;
+			case 30: render_character(11);	break;
+			case 31: render_character(12);	break;
+			case 32: render_character(13);	break;
+			case 33: render_character(14);	break;
+			case 34: render_character(15);	break;
+			case 35: render_character(16);	break;
+			case 36: render_character(17);	break;
+			case 37: render_character(18);	break;
+			case 38: render_character(19);	break;
+			case 39: render_character(20);	break;
+			case 40: render_character(21);	break;
+			case 41: render_character(22);	break;
+			case 42: render_character(23);	break;
+			case 43: render_character(24);	break;
+			case 44: render_character(25);	break;
+			case 45: render_character(26);	break;
+		}
+	}
+	if (in_game >= 10) {
+		in_game = 0;
+		render_game(); 
+	}
+
 }
 
 // poll the pushbuttons, and record their states.
@@ -381,14 +623,35 @@ void render_buffer()
 void check_inputs()
 {
 	// button 1 state (PORTD6)
-	if ((PIND & _BV(6)) == 0) b1++;	else b1 = 0;
+	if ((PIND & _BV(6)) == 0) b1++;	else { b1 = 0; is_down = 0;}
 
 	// button 2 state (PORTD7)
 	if ((PIND & _BV(7)) == 0) b2++;	else b2 = 0;
 
 	// rudimentary de-bouncing
-	if (b1 == 10) 		{ mode--; need_render_frame = 1; }
-	if (b2 == 10) 		{ mode++; need_render_frame = 1; }
+	if (b1 == 10) 		{ 
+		mode--; 
+		button_count--; 
+		if (button_count < 0) {
+			button_count = 0;
+		}
+		need_render_frame = 1; 
+		is_down = 1;
+	}
+	if (b2 == 10) 		{ 
+		mode++; 
+		button_count++;
+		if (button_count > 3) {
+			button_count = 3;
+		}
+	 
+		need_render_frame = 1; 
+		if (is_down == 1) {
+			in_game++;
+		}
+	
+	}
+	
 
 	// wraparound (optional)
 	if (mode > MODES) mode = 1;
@@ -415,6 +678,33 @@ void init()
 	sei();
 
 	mode = 1;	// Initial display pattern
+	button_count = 2;
+	ball_x = 3;
+	ball_y = 2;
+	dead_sleep = 0;
+	ball_y_dir = -1;
+	ball_x_dir = -1;
+	ball_angle = 90;
+	t_count = 223;
+	in_game = 0;
+	lives = 2;
+	int x;
+	int y;
+	for (x = 0; x < 3; x++) {
+		for (y = 0; y < COLS; y++) {
+			bitmap[x][y] = 1;
+		}
+	}
+	//Init blocks
+	int b_x = 0;
+	int b_y = 0;
+	
+	for (b_y = 0; b_y < 3; b_y++) {
+		for (b_x = 0; b_x < ROWS; b_x++) {
+			blocks[b_x][b_y] = 1;	
+		}
+	}
+
 }
 
 //////////////////////////////////////////////////////////// 
@@ -441,6 +731,7 @@ void main_loop()
 ////////////////////////////////////////////////////////////
 int main (void)
 {
+
 	init();
 	main_loop();
 	return (0);
